@@ -41,16 +41,10 @@ Java_com_peanut_hookstudy_CppImpl_readFromJNI(JNIEnv *env, jobject thiz, jstring
     return result;
 }
 
-//extern "C"
-//JNIEXPORT jint JNI_OnLoad(JavaVM* vm, int) {
-//
-//    return  JNI_VERSION_1_6;
-//}
-
 extern "C" long asm_read_file(const char* path, const void* buf, long size);
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_peanut_hookstudy_ASMImpl_readFromJNI(JNIEnv *env, jobject thiz, jstring path) {
+readFromJNI(JNIEnv *env, jobject thiz, jstring path) {
     char* data;
     data = static_cast<char *>(malloc(1024));
     memset(data, 0, 1024);
@@ -60,4 +54,25 @@ Java_com_peanut_hookstudy_ASMImpl_readFromJNI(JNIEnv *env, jobject thiz, jstring
     env->SetByteArrayRegion( result, 0, l, (const jbyte*)data );
     delete[] data;
     return result;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
+    JNIEnv *env = nullptr;
+    if ((vm)->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return -1;
+    }
+    jclass clazz = (env)->FindClass( "com/peanut/hookstudy/ASMImpl");
+    JNINativeMethod gMethods[] = {
+            {"readFromJNI", "(Ljava/lang/String;)[B", (void*)readFromJNI},
+    };
+    if((env)->RegisterNatives(clazz, gMethods, sizeof(gMethods)/sizeof(gMethods[0]))< 0) {
+        return -1;
+    }
+    return  JNI_VERSION_1_6;
+}
+
+extern "C"
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *) {
+
 }
